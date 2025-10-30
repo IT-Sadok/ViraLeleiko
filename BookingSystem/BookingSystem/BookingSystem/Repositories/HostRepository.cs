@@ -29,14 +29,14 @@ public class HostRepository: IHostRepository
         }
     };
 
-    private int nextId = 3;
+    private int _nextId = 3;
 
     public IEnumerable<Host> GetAll() => _hosts;
     public Host? GetById(int id) => _hosts.FirstOrDefault(x => x.Id == id);
 
     public Host Add(Host host)
     {
-        host.Id = nextId++;
+        host.Id = _nextId++;
         _hosts.Add(host);
         return host;
     }
@@ -61,6 +61,4 @@ public class HostRepository: IHostRepository
         _hosts.Remove(hostToDelete);
         return true;
     }
-
-
 }

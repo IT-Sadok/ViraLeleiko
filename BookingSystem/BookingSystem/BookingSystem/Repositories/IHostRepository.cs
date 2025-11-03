@@ -9,4 +9,5 @@ public interface IHostRepository
     Host Add(Host host);
     bool Update(Host host);
     bool Delete(int id);
+    void SaveChanges();
 }

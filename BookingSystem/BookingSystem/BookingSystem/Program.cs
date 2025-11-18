@@ -2,7 +2,7 @@
 using BookingSystem.Repositories;
 using BookingSystem.Services;
 
-var repository = new HostRepository();
+var repository =  HostRepository.Create();
 var hostService = new HostService(repository);
 
 bool isRunning = true;
@@ -18,6 +18,7 @@ while (isRunning)
         "3. Додавання нового хоста",
         "4. Редагування хоста",
         "5. Видалення хоста",
+        "6. Зберегти зміни",
         "0. Вихід"
     }));
 
@@ -90,6 +91,11 @@ while (isRunning)
                     else
                         Console.WriteLine("Хоста не знайдено.");
                 }
+                break;
+            
+            case 6:
+                hostService.SaveChanges();
+                Console.WriteLine("Змінм збережено у файл");
                 break;
 
             case 0:

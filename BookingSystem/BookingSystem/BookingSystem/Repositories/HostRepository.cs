@@ -1,42 +1,65 @@
-using BookingSystem.Repositories;
+
+using System.Text.Json;using BookingSystem.Repositories;
 using BookingSystem.Models;
 namespace BookingSystem.Repositories;
 
 public class HostRepository: IHostRepository
 {
-    private readonly List<Host> _hosts = new List<Host>
-    {
-        new Host
-        {
-            Id = 1,
-            Name = "Host Nuture",
-            Apartments = new List<Apartment>
-            {
-                new Apartment { Id = 1, Name = "The Oasis" },
-                new Apartment { Id = 2, Name = "The Park" },
-                new Apartment { Id = 3, Name = "The Forest" }
-            }
-        },
-        new Host
-        {
-            Id = 2,
-            Name = "Host Urban",
-            Apartments = new List<Apartment>
-            {
-                new Apartment { Id = 1, Name = "The Loft Life" },
-                new Apartment { Id = 2, Name = "The Urban Utopia" }
-            }
-        }
-    };
+    private const string _filePath = "hosts.json";
+    private List<Host> _hosts;
 
-    private int _nextId = 3;
+    private HostRepository(List<Host> hosts)
+    {
+        _hosts = hosts;
+    }
+
+    public static IHostRepository Create()
+    {
+        if (File.Exists(_filePath))
+        {
+            string jsonString  = File.ReadAllText(_filePath);
+            var hosts  = JsonSerializer.Deserialize<List<Host>>(jsonString) ?? new List<Host>();
+            return new HostRepository(hosts);
+        }
+        else
+        {
+            var defaultHosts = new List<Host>
+            {
+                new Host
+                {
+                    Id = 1,
+                    Name = "Host Nuture",
+                    Apartments = new List<Apartment>
+                    {
+                        new Apartment { Id = 1, Name = "The Oasis" },
+                        new Apartment { Id = 2, Name = "The Park" },
+                        new Apartment { Id = 3, Name = "The Forest" }
+                    }
+                },
+                new Host
+                {
+                    Id = 2,
+                    Name = "Host Urban",
+                    Apartments = new List<Apartment>
+                    {
+                        new Apartment { Id = 1, Name = "The Loft Life" },
+                        new Apartment { Id = 2, Name = "The Urban Utopia" }
+                    }
+                }
+            };
+            var json = JsonSerializer.Serialize(defaultHosts, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_filePath, json);
+
+            return new HostRepository(defaultHosts);
+        }
+    }
 
     public IEnumerable<Host> GetAll() => _hosts;
     public Host? GetById(int id) => _hosts.FirstOrDefault(x => x.Id == id);
 
     public Host Add(Host host)
     {
-        host.Id = _nextId++;
+        host.Id = _hosts.Count == 0 ? 1: _hosts.Max(x => x.Id) + 1;
         _hosts.Add(host);
         return host;
     }
@@ -60,5 +83,10 @@ public class HostRepository: IHostRepository
             return false;
         _hosts.Remove(hostToDelete);
         return true;
+    }
+    public void SaveChanges()
+    {
+        var json = JsonSerializer.Serialize(_hosts, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(_filePath, json);
     }
 }

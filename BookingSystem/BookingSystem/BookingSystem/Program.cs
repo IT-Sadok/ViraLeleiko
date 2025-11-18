@@ -2,7 +2,7 @@
 using BookingSystem.Repositories;
 using BookingSystem.Services;
 
-var repository = new HostRepository();
+var repository =  HostRepository.Create();
 var hostService = new HostService(repository);
 
 bool isRunning = true;

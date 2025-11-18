@@ -5,20 +5,25 @@ namespace BookingSystem.Repositories;
 
 public class HostRepository: IHostRepository
 {
-    private readonly string _filePath = "hosts.json";
+    private const string _filePath = "hosts.json";
     private List<Host> _hosts;
 
-    public HostRepository()
+    private HostRepository(List<Host> hosts)
+    {
+        _hosts = hosts;
+    }
+
+    public static IHostRepository Create()
     {
         if (File.Exists(_filePath))
         {
             string jsonString  = File.ReadAllText(_filePath);
-            _hosts = JsonSerializer.Deserialize<List<Host>>(jsonString) ?? new List<Host>();
+            var hosts  = JsonSerializer.Deserialize<List<Host>>(jsonString) ?? new List<Host>();
+            return new HostRepository(hosts);
         }
         else
         {
-            
-            _hosts = new List<Host>
+            var defaultHosts = new List<Host>
             {
                 new Host
                 {
@@ -42,7 +47,10 @@ public class HostRepository: IHostRepository
                     }
                 }
             };
-            SaveChanges();
+            var json = JsonSerializer.Serialize(defaultHosts, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_filePath, json);
+
+            return new HostRepository(defaultHosts);
         }
     }
 

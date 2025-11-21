@@ -20,5 +20,6 @@ public class HostService
     public bool UpdateHost(Host host) => _repository.Update(host);
 
     public bool DeleteHost(int id) => _repository.Delete(id);
+    
     public void SaveChanges() => _repository.SaveChanges();
 }

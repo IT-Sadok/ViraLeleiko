@@ -4,6 +4,7 @@ using BookingSystem.Services;
 
 var repository =  HostRepository.Create();
 var hostService = new HostService(repository);
+var apartmentService = new ApartmentService();
 
 bool isRunning = true;
 
@@ -19,6 +20,7 @@ while (isRunning)
         "4. Редагування хоста",
         "5. Видалення хоста",
         "6. Зберегти зміни",
+        "7. Збільшення ціни апартаментів",
         "0. Вихід"
     }));
 
@@ -70,7 +72,7 @@ while (isRunning)
                     {
                         Console.Write($"Введіть нове ім'я (поточне: {existingHost.Name}): ");
                         string? newName = Console.ReadLine();
-                        existingHost.Name = string.IsNullOrWhiteSpace(newName) ? existingHost.Name : newName;
+                        existingHost.Name = string.IsNullOrWhiteSpace(newName)? existingHost.Name: newName;
 
                         if (hostService.UpdateHost(existingHost))
                             Console.WriteLine("Хоста оновлено!");
@@ -97,7 +99,30 @@ while (isRunning)
                 hostService.SaveChanges();
                 Console.WriteLine("Змінм збережено у файл");
                 break;
+            case 7:
+                var sharedApartment = new Apartment { Id = 1, Name = "sharedApartment", Price = 100 };
+                var thread1 = new Thread(() => apartmentService.IncreasePrice(sharedApartment));
+                var thread2 = new Thread(() => apartmentService.IncreasePrice(sharedApartment));
+                thread1.Start();
+                thread2.Start();
+                thread1.Join();
+                thread2.Join();
 
+                Console.WriteLine($"Результат без синхронізації: {sharedApartment.Price}");
+                
+                sharedApartment.Price = 100;
+
+                var t1 = new Thread(() => apartmentService.IncreasePriceSafe(sharedApartment));
+                var t2 = new Thread(() => apartmentService.IncreasePriceSafe(sharedApartment));
+
+                t1.Start();
+                t2.Start();
+
+                t1.Join();
+                t2.Join();
+
+                Console.WriteLine($"Результат із синхронізацією (lock): {sharedApartment.Price}");
+                break;
             case 0:
                 Console.WriteLine("До побачення!");
                 isRunning = false;

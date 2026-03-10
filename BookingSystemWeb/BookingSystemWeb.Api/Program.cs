@@ -2,12 +2,15 @@ using BookingSystemWeb.Infrastructure;
 using BookingSystemWeb.Application;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
+using BookingSystemWeb.Application.Common.Mappings;
+using Mapster;
+using BookingSystemWeb.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-
+UserMappings.Register();
+builder.Services.AddMapster();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -37,19 +40,12 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
 var app = builder.Build();
+
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    string[] roles = { "Client", "Host" };
-
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
-    }
+    var services = scope.ServiceProvider;
+    await DbInitializer.SeedRolesAsync(services);
 }
 
 if (app.Environment.IsDevelopment())
@@ -57,12 +53,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

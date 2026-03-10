@@ -1,6 +1,7 @@
 using BookingSystemWeb.Application.Interfaces;
 using BookingSystemWeb.Application.Models;
 using BookingSystemWeb.Domain.Entities;
+using MapsterMapper;
 
 namespace BookingSystemWeb.Application.Services;
 
@@ -9,15 +10,18 @@ public class AuthService: IAuthService
     private readonly IUserManager _userManager;
     private readonly IRoleManager _roleManager;
     private readonly IJwtTokenGenerator _jwt;
+    private readonly IMapper _mapper;
 
     public AuthService(
         IUserManager userManager,
         IRoleManager roleManager,
-        IJwtTokenGenerator jwt)
+        IJwtTokenGenerator jwt,
+        IMapper mapper)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _jwt = jwt;
+        _mapper = mapper;
     }
 
     public async Task RegisterAsync(RegisterUserRequest request)
@@ -30,13 +34,7 @@ public class AuthService: IAuthService
         if (existingUser != null)
             throw new Exception("User already exists");
 
-        var user = new User
-        {
-            Email = request.Email,
-            UserName = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName
-        };
+        var user = _mapper.Map<User>(request);
 
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result)
